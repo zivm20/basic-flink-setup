@@ -1,0 +1,83 @@
+#see https://github.com/apache/flink/blob/762bb5ab2a6a5ed48f3d60501b9e1c0d362ad8cb/flink-dist/src/main/resources/config.yaml#L19
+
+env:
+  java:
+    opts:
+      all: --add-exports=java.base/sun.net.util=ALL-UNNAMED --add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED
+
+jobmanager:
+  rpc:
+    address: jobmanager
+    port: 6123
+  bind-host: 0.0.0.0
+  memory:
+    process:
+      size: 1024m
+
+taskmanager:
+  bind-host: 0.0.0.0
+  host: taskmanager
+  memory:
+    process:
+      size: 1024m
+  numberOfTaskSlots: 4
+
+parallelism:
+  default: 2
+
+execution:
+  # Iceberg commits on checkpoints
+  checkpointing:
+    interval: 10s
+    mode: EXACTLY_ONCE
+    min-pause: 5s
+
+state:
+  backend:
+    type: hashmap
+  checkpoints:
+    dir: s3p://flink-checkpoints/flink/checkpoints
+
+rest:
+  port: 8081
+  address: 0.0.0.0
+  bind-address: 0.0.0.0
+
+classloader:
+  # Prefer user jars when there are conflicts
+  resolve-order: parent-first
+  check-leaked-classloader: false
+
+#jobmanager.rpc.address: jobmanager
+#jobmanager.bind-host: 0.0.0.0
+#jobmanager.memory.process.size: 512m
+#
+#taskmanager.bind-host: 0.0.0.0
+#taskmanager.host: taskmanager
+#taskmanager.memory.process.size: 512m
+#taskmanager.numberOfTaskSlots: 2
+#
+#parallelism.default: 1
+#
+## Iceberg commits on checkpoints
+#execution.checkpointing.interval: 10s
+#execution.checkpointing.mode: EXACTLY_ONCE
+#execution.checkpointing.min-pause: 5s
+#
+#state.backend.type: hashmap
+#state.checkpoints.dir: file:///tmp/flink-checkpoints
+#
+#rest.address: 0.0.0.0
+#rest.bind-address: 0.0.0.0
+#
+## Prefer user jars when there are conflicts
+#classloader.resolve-order: parent-first
+#classloader.check-leaked-classloader: false
+
+# AWS SDK / Iceberg S3FileIO (overridden further by job env)
+aws.region: us-east-1
+s3.endpoint: http://minio:9000
+s3.path.style.access: true
+s3.access-key: admin
+s3.secret-key: password
+

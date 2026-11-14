@@ -1,0 +1,22 @@
+# Secrets / local env copies (keep *.example)
+env/*.env
+!env/*.example
+!env/local.*.env
+
+# Downloaded cluster jars (regenerate with scripts/download_jars.py)
+jars/*.jar
+
+# Build
+job/target/
+.m2/
+**/__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

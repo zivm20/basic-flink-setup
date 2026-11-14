@@ -1,0 +1,59 @@
+# Standalone Kafka (KRaft). Independent of Flink.
+# Advertises kafka so both the host producer and Flink containers can use the same bootstrap.
+# Usage:
+#   docker compose -f docker-compose.kafka.yml --env-file env/local.kafka.stack.env up -d
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - local-cluster
+
+  kafka:
+    container_name: ${KAFKA_CONTAINER_NAME:-kafka}
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - local-cluster
+
+
+#  kafka-init:
+#    image: ${KAFKA_IMAGE:-apache/kafka:3.9.0}
+#    container_name: kafka-init
+#    depends_on:
+#      kafka:
+#        condition: service_healthy
+#    entrypoint: ["/bin/bash", "-c"]
+#    networks:
+#      - local-cluster
+#    command:
+#      - |
+#        /opt/kafka/bin/kafka-topics.sh --bootstrap-server ${KAFKA_CONTAINER_NAME:-kafka}:9092 \
+#          --create --if-not-exists \
+#          --topic ${KAFKA_TOPIC:-events} \
+#          --partitions ${KAFKA_PARTITIONS:-1} \
+#          --replication-factor ${KAFKA_REPLICATION_FACTOR:-1}
+#        echo "topic ${KAFKA_TOPIC:-events} ready"
+#    restart: "no"
+
+
+networks:
+  local-cluster:
+    name: local-cluster
+    external: true
