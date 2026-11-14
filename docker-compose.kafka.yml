@@ -16,7 +16,7 @@ services:
 
   kafka:
     container_name: ${KAFKA_CONTAINER_NAME:-kafka}
-    image: confluentinc/cp-kafka:7.6.0
+    image: ${KAFKA_IMAGE:-confluentinc/cp-kafka:7.6.0}
     depends_on:
       - zookeeper
     ports:
@@ -31,26 +31,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - local-cluster
-
-
-#  kafka-init:
-#    image: ${KAFKA_IMAGE:-apache/kafka:3.9.0}
-#    container_name: kafka-init
-#    depends_on:
-#      kafka:
-#        condition: service_healthy
-#    entrypoint: ["/bin/bash", "-c"]
-#    networks:
-#      - local-cluster
-#    command:
-#      - |
-#        /opt/kafka/bin/kafka-topics.sh --bootstrap-server ${KAFKA_CONTAINER_NAME:-kafka}:9092 \
-#          --create --if-not-exists \
-#          --topic ${KAFKA_TOPIC:-events} \
-#          --partitions ${KAFKA_PARTITIONS:-1} \
-#          --replication-factor ${KAFKA_REPLICATION_FACTOR:-1}
-#        echo "topic ${KAFKA_TOPIC:-events} ready"
-#    restart: "no"
 
 
 networks:

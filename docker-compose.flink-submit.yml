@@ -1,0 +1,46 @@
+services:
+  job-builder:
+    image: maven:3.9.9-eclipse-temurin-17
+    working_dir: /workspace/job
+    volumes:
+      - ./job:/workspace/job
+      - maven-repo:/root/.m2
+      - ./maven-shit:/maven-shit
+    command: [ "sh", "/maven-shit/run.sh" ]
+
+  submitter:
+    image: flink-lab:2.2.0
+    container_name: flink-submitter
+    depends_on:
+      job-builder:
+        condition: service_completed_successfully
+    env_file:
+      - env/local.flink.env
+    volumes:
+      - ./flink/flink-conf.yaml:/opt/flink/conf/config.yaml:ro
+      - ./job/target:/opt/flink/job:ro
+    networks:
+      - local-cluster
+    entrypoint: [ "/bin/bash", "-c" ]
+    command:
+      - |
+        set -euo pipefail
+        echo "Waiting for JobManager..."
+        for i in $$(seq 1 60); do
+          if curl -sf http://jobmanager:8081/overview >/dev/null; then
+            break
+          fi
+          sleep 2
+        done
+        JOB_JAR=$$(ls /opt/flink/job/flink-iceberg-lab-*.jar | grep -v original | head -n1)
+        echo "Submitting $$JOB_JAR"
+        flink run -d -m jobmanager:8081 "$$JOB_JAR"
+        echo "Job submitted"
+    restart: "no"
+
+volumes:
+  maven-repo:
+networks:
+  local-cluster:
+    name: local-cluster
+    external: true
